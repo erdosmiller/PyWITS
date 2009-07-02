@@ -1,6 +1,6 @@
 import string
 
-class identifier:
+class Identifier:
     def __init__(self,record_identifier=None,item_identifier=None):
         self.record_identifier = record_identifier
         self.item_identifier = item_identifier
@@ -13,7 +13,7 @@ class identifier:
     def __repr__(self):
         return '%s%s' % (self.record_identifier, self.item_identifier)
 
-class data_record:
+class DataRecord:
     def __init__(self,identifier=None,value=None):
         self.identifier = identifier
         self.value = value
@@ -21,7 +21,7 @@ class data_record:
     def __repr__(self):
         return 'DR: Id: %s V: %s' % (repr(self.identifier),str(self.value))
 
-class logical_record:
+class LogicalRecord:
     def __init__(self,data_records=[]):
         self.data_records = data_records
         
