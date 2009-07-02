@@ -14,6 +14,7 @@ class Identifier:
         return '%s%s' % (self.record_identifier, self.item_identifier)
 
 class DataRecord:
+    SEPERATOR = '\r\n'
     def __init__(self,identifier=None,value=None):
         self.identifier = identifier
         self.value = value
@@ -22,6 +23,9 @@ class DataRecord:
         return 'DR: Id: %s V: %s' % (repr(self.identifier),str(self.value))
 
 class LogicalRecord:
+    BEGIN = '&&\r\n' #HEX 26,26,OD,OA
+    END = '!!\r\n' #HEX 21,21,0D,0A
+
     def __init__(self,data_records=[]):
         self.data_records = data_records
         
@@ -31,5 +35,3 @@ class LogicalRecord:
             d.append(repr(dr))
 
         return string.join(d,'\n')
-        
-        
