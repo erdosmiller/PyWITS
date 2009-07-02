@@ -3,8 +3,6 @@ import string, re, time, socket
 from packet import Identifier, DataRecord, LogicalRecord
 
 DATA_REQUEST = LogicalRecord.BEGIN + LogicalRecord.END
-PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999.0' + 
-                      DataRecord.SEPERATOR + LogicalRecord.END)
 
 class IO(object):
     def write(self, data):
@@ -105,16 +103,19 @@ class Communicator(object):
         self.io.close()
 
 class WITS0Communicator(Communicator):
+    PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999.0' + 
+                          DataRecord.SEPERATOR + LogicalRecord.END)
+
     def __init__(self, address, port):
         self.socket = socket.create_connection((address, port), 1)
         io = TCPIO(self.socket)
         Communicator.__init__(self,io, WITS0Parser())
 
     def read_pason_data(self):
-        return self.ask(PASON_DATA_REQUEST)
+        return self.ask(WITS0Communicator.PASON_DATA_REQUEST)
 
 if __name__ == '__main__':
     
     test_str = '&&\r\n1984PASON/EDR\r\n0108519.48\r\n01103705.81\r\n01130.00\r\n01230.00\r\n01240.00\r\n01250.00\r\n0137987626.00\r\n01426229.27\r\n0143495787.00\r\n0144491839.00\r\n01450.00\r\n!!\r\n'
     
-    print WITS0Parser().parse_data(test_str)
+    print WITS0Parser().parse(test_str)
