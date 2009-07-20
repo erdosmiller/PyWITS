@@ -9,7 +9,7 @@ class IO(object):
         "writes a string out"
         raise NotImplementedError, "subclasses of IO must implement this method"
     def read(self):
-        "reads a string in"
+        """reads a string in"""
         raise NotImplementedError, "subclasses of IO must implement this method"
     def close(self):
         "closes connection"
@@ -26,9 +26,12 @@ class SerialIO(IO):
         data = []
         new_data = None
         while(new_data != ''):
-            new_data = self.io.read()
+            new_data = self.serial.read()
             data.append(new_data)
         return ''.join(data)
+    
+    def close(self):
+        self.serial.close()
 
 class TCPIO(IO):
     def __init__(self, socket, timeout=.25):
@@ -97,13 +100,13 @@ class Communicator(object):
         return self.read()
 
     def read(self):
-        return self.parser.parse_data(self.io.read())
+        return self.parser.parse(self.io.read())
 
     def close(self):
         self.io.close()
 
 class WITS0Communicator(Communicator):
-    PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999.0' + 
+    PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999' + 
                           DataRecord.SEPERATOR + LogicalRecord.END)
 
     def __init__(self, address, port):

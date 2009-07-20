@@ -1,9 +1,9 @@
 import string
 
 class Identifier:
-    def __init__(self,record_identifier=None,item_identifier=None):
-        self.record_identifier = record_identifier
-        self.item_identifier = item_identifier
+    def __init__(self,record=None,item=None):
+        self.record = record
+        self.item = item
 
     def get_full_id(self):
         return self.record_identifier + self.item_identifier
