@@ -111,7 +111,7 @@ class WITS0Communicator(Communicator):
 
     def __init__(self, address, port):
         self.socket = socket.socket()
-        self.socket.connect((ip_address, port))
+        self.socket.connect((address, port))
         self.socket.settimeout(1)
         io = TCPIO(self.socket)
         Communicator.__init__(self,io, WITS0Parser())
