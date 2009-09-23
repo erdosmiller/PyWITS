@@ -22,7 +22,7 @@ class SerialIO(IO):
 
     def write(self, data):
         self.serial.write(data)
-
+        
     def read(self):
         data = []
         new_data = None
@@ -62,18 +62,14 @@ class Parser(object):
         raise NotImplementedError, "subclasses of IO must implement this method"
 
 class WITS0Parser(Parser):
-
-    set_re = None
+    LOGICAL_RECORD_REGEX = re.compile(LogicalRecord.BEGIN + '[^&^!]*' +
+                                      LogicalRecord.END,re.DOTALL)
 
     def parse(self, data):
         return self.parse_data(data)
 
     def parse_data(self,data):
-
-        if self.set_re == None :
-            self.set_re = re.compile(LogicalRecord.BEGIN + '[^&^!]*' +
-                                            LogicalRecord.END,re.DOTALL)
-        logical_record_strings = self.set_re.findall(data)
+        logical_record_strings = WITS0Parser.LOGICAL_RECORD_REGEX.findall(data)
         return [self.parse_logical_record(x)
                 for _,x in enumerate(logical_record_strings)]
 
@@ -111,32 +107,35 @@ class Communicator(object):
     def close(self):
         self.io.close()
 
-class WITS0SerialCommunicator(Communicator):
+class PasonCommunicator(Communicator):
     PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999' +
                           DataRecord.SEPERATOR + LogicalRecord.END)
 
-    def __init__(self, comport):
-        self.comport = serial.Serial(port = comport, baudrate=9600, bytesize=8, parity='N', stopbits=1, timeout=3)
-
-        io = SerialIO(self.comport)
-        Communicator.__init__(self,io, WITS0Parser())
+    def __init__(self, io):
+        Communicator.__init__(self, io, WITS0Parser())
 
     def read_pason_data(self):
-        return self.ask(WITS0SerialCommunicator.PASON_DATA_REQUEST)
+        return self.ask(PasonCommunicator.PASON_DATA_REQUEST)
 
-class WITS0EthernetCommunicator(Communicator):
-    PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999' +
-                          DataRecord.SEPERATOR + LogicalRecord.END)
 
+class PasonSerialCommunicator(PasonCommunicator):
+    def __init__(self, comport):
+        self.comport = serial.Serial(port=comport,
+                                     baudrate=9600,
+                                     bytesize=8,
+                                     parity='N',
+                                     stopbits=1,
+                                     timeout=3)
+        io = SerialIO(self.comport)
+        PasonCommunicator.__init__(self,io)
+
+class PasonEthernetCommunicator(Communicator):
     def __init__(self, address, port):
         self.socket = socket.socket()
         self.socket.connect((address, port))
         self.socket.settimeout(1)
         io = TCPIO(self.socket)
-        Communicator.__init__(self,io, WITS0Parser())
-
-    def read_pason_data(self):
-        return self.ask(WITS0EthernetCommunicator.PASON_DATA_REQUEST)
+        PasonCommunicator.__init__(self,io)
 
 if __name__ == '__main__':
 
