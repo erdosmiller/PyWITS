@@ -1,6 +1,7 @@
 import string, re, time, socket
 
 from packet import Identifier, DataRecord, LogicalRecord
+import serial
 
 DATA_REQUEST = LogicalRecord.BEGIN + LogicalRecord.END
 
@@ -110,7 +111,20 @@ class Communicator(object):
     def close(self):
         self.io.close()
 
-class WITS0Communicator(Communicator):
+class WITS0SerialCommunicator(Communicator):
+    PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999' +
+                          DataRecord.SEPERATOR + LogicalRecord.END)
+
+    def __init__(self, comport):
+        self.comport = serial.Serial(port = comport, baudrate=9600, bytesize=8, parity='N', stopbits=1, timeout=3)
+
+        io = SerialIO(self.comport)
+        Communicator.__init__(self,io, WITS0Parser())
+
+    def read_pason_data(self):
+        return self.ask(WITS0SerialCommunicator.PASON_DATA_REQUEST)
+
+class WITS0EthernetCommunicator(Communicator):
     PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999' +
                           DataRecord.SEPERATOR + LogicalRecord.END)
 
@@ -122,7 +136,7 @@ class WITS0Communicator(Communicator):
         Communicator.__init__(self,io, WITS0Parser())
 
     def read_pason_data(self):
-        return self.ask(WITS0Communicator.PASON_DATA_REQUEST)
+        return self.ask(WITS0EthernetCommunicator.PASON_DATA_REQUEST)
 
 if __name__ == '__main__':
 
