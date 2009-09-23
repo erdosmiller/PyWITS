@@ -29,7 +29,7 @@ class SerialIO(IO):
             new_data = self.serial.read()
             data.append(new_data)
         return ''.join(data)
-    
+
     def close(self):
         self.serial.close()
 
@@ -37,7 +37,7 @@ class TCPIO(IO):
     def __init__(self, socket, timeout=.25):
         self.socket = socket
         self.timeout = timeout
-    
+
     def write(self, data):
         self.socket.send(data)
 
@@ -48,10 +48,10 @@ class TCPIO(IO):
             while 1:
                 resp = self.socket.recv(2048)
                 data += resp
-        except: 
+        except:
             pass
         return data
-    
+
     def close(self):
         self.socket.close()
 
@@ -61,13 +61,18 @@ class Parser(object):
         raise NotImplementedError, "subclasses of IO must implement this method"
 
 class WITS0Parser(Parser):
+
+    set_re = None
+
     def parse(self, data):
         return self.parse_data(data)
 
     def parse_data(self,data):
-        set_re = re.compile(LogicalRecord.BEGIN + '[^&^!]*' + 
-                            LogicalRecord.END,re.DOTALL) 
-        logical_record_strings = set_re.findall(data)
+
+        if self.set_re == None :
+            self.set_re = re.compile(LogicalRecord.BEGIN + '[^&^!]*' +
+                                            LogicalRecord.END,re.DOTALL)
+        logical_record_strings = self.set_re.findall(data)
         return [self.parse_logical_record(x)
                 for _,x in enumerate(logical_record_strings)]
 
@@ -76,9 +81,9 @@ class WITS0Parser(Parser):
         end_length = len(LogicalRecord.END)
         stripped_logical_record = logical_record_string[begin_length:-end_length]
         data_record_strings = stripped_logical_record.split(DataRecord.SEPERATOR)
-        data_records = [self.parse_data_record(x) 
+        data_records = [self.parse_data_record(x)
                         for x in data_record_strings if x != '']
-        return LogicalRecord(data_records)        
+        return LogicalRecord(data_records)
 
     def parse_data_record(self,data_record_string):
         record_identifier = data_record_string[0:2]
@@ -91,7 +96,7 @@ class Communicator(object):
     def __init__(self, io, parser):
         self.io = io
         self.parser = parser
-        
+
     def write(self,data):
         self.io.write(data)
 
@@ -106,7 +111,7 @@ class Communicator(object):
         self.io.close()
 
 class WITS0Communicator(Communicator):
-    PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999' + 
+    PASON_DATA_REQUEST = (LogicalRecord.BEGIN + '0111-9999' +
                           DataRecord.SEPERATOR + LogicalRecord.END)
 
     def __init__(self, address, port):
@@ -120,7 +125,9 @@ class WITS0Communicator(Communicator):
         return self.ask(WITS0Communicator.PASON_DATA_REQUEST)
 
 if __name__ == '__main__':
-    
+
     test_str = '&&\r\n1984PASON/EDR\r\n0108519.48\r\n01103705.81\r\n01130.00\r\n01230.00\r\n01240.00\r\n01250.00\r\n0137987626.00\r\n01426229.27\r\n0143495787.00\r\n0144491839.00\r\n01450.00\r\n!!\r\n'
-    
-    print WITS0Parser().parse(test_str)
+
+    p = WITS0Parser()
+    print p.parse(test_str)
+
