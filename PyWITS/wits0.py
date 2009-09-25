@@ -129,7 +129,7 @@ class PasonSerialCommunicator(PasonCommunicator):
         io = SerialIO(self.comport)
         PasonCommunicator.__init__(self,io)
 
-class PasonEthernetCommunicator(Communicator):
+class PasonEthernetCommunicator(PasonCommunicator):
     def __init__(self, address, port):
         self.socket = socket.socket()
         self.socket.connect((address, port))
